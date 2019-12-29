@@ -32,4 +32,5 @@ After writing all your posts, the whole thing can be compiled by running `./make
 
 This was written in openbsd and there may be slight differences in the syntax for sed and awk commands.
 
-To generate a locally viewable copy simply set the `baseurl` variable in `makeposts.sh` to `file://<path-to-repo>/deploy`
+To generate a locally viewable copy simply run `makeposts.sh local` and the resulting webpage saved in the `deploy` directory should be fully functional
+

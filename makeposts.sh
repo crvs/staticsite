@@ -3,6 +3,10 @@
 blogname="MY BLOG"
 baseurl=https://my_base_url.xyz
 
+if [ "$1" = "local" ]
+    then baseurl=file:///`pwd`/deploy
+fi
+
 runmarkdown () {
         lowdown -e math $1 | sed "s@INSERTBASEURL@${baseurl}@g"
 }
@@ -77,6 +81,7 @@ postmanifest=`mktemp`
 
 for file in `ls -1 posts/*.md`;
 do
+    file=${file##posts/}
     outfile=${file%%.md}.html
 
     getheader posts/$file > $headfile
