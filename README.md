@@ -4,7 +4,7 @@ This is a simple static html blog generator using only 278 lines (as of this sub
 
 ## Organization
 
-Posts are placed within the `posts` directory and are written in markdown.
+Posts are placed within the `posts` directory and are written in markdown, and have `.md` extension (anything else can be used to effectively save drafts inplace, for example).
 
 Each post begins with a metadata section delimited by lines containing nothing but dashes.
 

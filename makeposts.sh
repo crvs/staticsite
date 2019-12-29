@@ -75,7 +75,7 @@ htmlbody=`mktemp`
 
 postmanifest=`mktemp`
 
-for file in `ls -1 posts`;
+for file in `ls -1 posts/*.md`;
 do
     outfile=${file%%.md}.html
 
