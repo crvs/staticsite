@@ -1,0 +1,118 @@
+#!/bin/sh
+
+print_usage () {
+cat << EOF
+    Usage:  ${0##*/} [-t <template.html>] [-h <header.html>] <file.html>
+
+    Description:
+        Takes the contents of <filename.html> and places it into the template
+        <template.html> at the line containing the string 'TEMPLATE_INPUT'
+        (this should be placed in a comment by itself).
+
+        If no template is provided, the standard template is used.
+
+        The contents of <header.html> (if provided with the -h flag) are placed
+        inside the <head> section at the line contanining the string
+        'HEAD_INPUT' (this should be placed in a comment by itself).
+
+        The output is piped to stdout.
+EOF
+}
+
+template_=0
+template=""
+
+headfile_=0
+headfilename=""
+
+bodyfilename=""
+
+for arg in ${*}; do
+    if [ "$arg" = "-t" ] ; then
+        template_=1
+    elif [ "$arg" = "-h" ] ; then
+        headfile_=1
+    elif [ "$template_" = "1" ] ; then
+        template=$arg
+        template_=2
+    elif [ "$headfile_" = "1" ] ; then
+        headfilename=$arg
+        headfile_=2
+    else
+        bodyfilename=$arg
+    fi
+done
+
+if [ "$template_" = "0" ] ; then
+
+template=$(mktemp)
+cat > $template << EOF
+<!DOCTYPE HTML>
+<html>
+<!-- DEFAULT TEMPLATE -->
+<head>
+
+<script type='text/x-mathjax-config'>
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ['\\\(','\\\)'] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type='text/javascript'
+    src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async>
+</script>
+<meta name="viewport" content="width=device-width"/>
+<style type="text/css">
+body{
+	font-family: Arial, Helvetica, sans-serif;
+}
+.content {
+	width: 650px;
+	margin-right: auto;
+	margin-left:  auto;}
+p {
+	text-align: justify;
+	text-justify: inter-word;}
+h3.list-link {
+     line-height: 40%;}
+h6.list-date {
+	line-height: 20%;}
+</style>
+
+<!-- HEAD_INPUT -->
+
+</head>
+<body>
+<div class="content">
+
+<!-- TEMPLATE_INPUT -->
+
+</div>
+</body>
+</html>
+EOF
+
+fi
+
+
+
+if [ ! $# = 3 ] ; then
+    if [ ! $# = 1 ] ; then
+        print_usage
+        exit 1
+    fi
+fi
+cat $template | sed -e "/HEAD_INPUT/q"
+echo "<!-- HEAD_CONTENT_BEGIN -->"
+if [ "$headfile_" = "2" ] ; then
+    cat $headfilename
+fi
+echo "<!-- HEAD_CONTENT_END -->"
+cat $template | sed '1,/HEAD_INPUT/d;/TEMPLATE_INPUT/q'
+echo "<!-- BODY_CONTENT_BEGIN -->"
+cat $bodyfilename
+echo "<!-- BODY_CONTENT_END -->"
+cat $template | sed '1,/TEMPLATE_INPUT/d'
+
