@@ -1,0 +1,195 @@
+#!/bin/sh
+
+yell() { echo ": $*" >&2; }
+die () { yell "$*"; exit 111; }
+try () { "$@" || die "cannot $*" ; }
+
+blogtitle=`try sed -n 's/blogtitle: *//p' blogconfig`
+postdirs=`try sed -n 's/postdirs: *//p' blogconfig`
+baseurl=`try sed -n 's/baseurl: *//p' blogconfig`
+
+mkdir -p cache
+
+touch cache/dirtytags
+dirty=0
+
+# open database
+sqlite3 cache/posts.db "create table if not exists posts ( title TEXT, prefix TEXT, date TEXT, modified TEXT, tag TEXT)"
+
+isnewer () {
+    new=$1
+    old=$2
+    ####### in open bsd
+    newstamp=`stat -f "%Sm" -t "%Y%m%d%H%M%S" $new`
+    #newstamp=`stat -c "%Y" $new` 
+    if [ ! -f $old ]; then
+        echo "0"
+        return 0
+    fi
+
+    oldstamp=`stat -f "%Sm" -t "%Y%m%d%H%M%S" $old`
+    #oldstamp=`stat -c "%Y" $old` 
+    if [ $newstamp -ge $oldstamp ]; then
+        echo "0"
+    else
+        echo "1"
+    fi
+    return 0
+}
+
+processheader () {
+    # add or update post entry(/ies) in database
+    fileprefix=$1
+    header=cache/$fileprefix.head
+    title=`sed -n 's/^title:  *//p' $header`
+    date=`sed -n 's/^date:  *//p' $header`
+    modified=`sed -n 's/^modified:  *//p' $header`
+    if [ "$modified" = "" ]; then
+        modified=$date
+    fi
+    sqlite3 cache/posts.db "delete from posts where prefix = \"$fileprefix\""
+    tags=`sed -n 's/^tags:  *//p' $header`
+    if [ "$tags" = "" ]; then
+        sqlite3 cache/posts.db "insert into posts values (\"$title\",\"$fileprefix\",\"$date\",\"$modified\",\"\")"
+    else
+        for tag in $tags; do
+            sqlite3 cache/posts.db "insert into posts values (\"$title\",\"$fileprefix\",\"$date\",\"$modified\",\"$tag\")"
+        done
+    fi
+}
+
+htmlhead () {
+    prefix=$1
+    title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\""`
+    echo "<title>${blogtitle}:${title}</title>"
+}
+
+dateandtags () {
+    prefix=$1
+    date=`sqlite3 cache/posts.db "select distinct date from posts where prefix = \"$prefix\""`
+    echo "<b>published: ${date}</b>"
+    modified=`sqlite3 cache/posts.db "select distinct modified from posts where prefix = \"$prefix\""`
+    if [ ! "$date" = "$modified" ] ; then
+        echo "<b>last modified: ${modified}</b>"
+    fi
+    echo "<br/>"
+    tags=`sqlite3 cache/posts.db "select distinct tag from posts where prefix = \"$prefix\""`
+    for tag in $tags; do
+        echo $tag >> cache/dirtytags
+        echo "<a href=tag_${tag}.html>${tag}</a>"
+    done
+}
+
+
+htmlbody () {
+    prefix=$1
+    title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\""`
+    echo "<h1 class=\"blog-title\"><a href=\"index.html\">${blogtitle}</a></h1>"
+    echo "<h1 class=\"post-title\">${title}</h1>"
+    dateandtags $prefix
+    lowdown -e math cache/${prefix}.body
+}
+
+
+metadatawarning() {
+post=$1
+cat << EOF
+WARNING, there may be a problem with processing metadata in $post, please make
+sure that there are exactly 2 instances of lines comprising _only_ dashes at
+the head of the file, and containing nothing but the metadata in between.
+EOF
+grep '^--*$' -n -C1 $post
+}
+
+processpost () {
+    post=$1
+    baseurl=$2
+    outprefix=`echo $post | sed 's@/@_@g;s/.md$//'`
+    recompute=`isnewer $post cache/$outprefix.html`
+    if [ "$recompute" = "0" ]; then
+        echo processing $post
+        dirty=1
+        sed -n '/^--*$/,/^--*$/p' $post | sed '1d;$d' > cache/$outprefix.head
+        sed '/^--*$/,/^--*$/d' $post > cache/$outprefix.body
+        nbars=`sed -n '/^--*$/p' $post | wc -l`
+        if [ $nbars -ne 2 ]; then
+            metadatawarning $post >&2
+        fi
+        processheader $outprefix
+        htmlbody $outprefix > cache/${outprefix}_body.html
+        htmlhead $outprefix > cache/${outprefix}_head.html
+        ./html-templater -h cache/${outprefix}_head.html cache/${outprefix}_body.html > cache/${outprefix}.html
+        # rm cache/${outprefix}_body.html cache/${outprefix}_head.html cache/${outprefix}.head cache/${outprefix}.body
+    fi
+}
+
+processdir () {
+    dir=$1
+    baseurl=$2
+
+    # fail if directory doesn't exist
+    [ -d $dir ] || die "FAILED no such directory \"$dir\""
+
+    # fail silently if directory doesn't have posts
+    for post in `ls $dir/*.md 2>/dev/null`; do
+        processpost $post $baseurl
+    done
+}
+
+makeindex () {
+    headfile=cache/index_head.html
+    bodyfile=cache/index_body.html
+    printf "<title>${blogtitle}</title>" > $headfile
+    printf "<h1 class=\"blog-title\">%s</h1>\n" $blogtitle > $bodyfile
+    if [ -f "indices/index.md" ]; then
+        lowdown -e math indices/index.md | sed "s@INSERTBASEURL@$baseurl@g" >> $bodyfile
+    fi
+    echo >> $bodyfile
+    prefixes=`sqlite3 cache/posts.db "select distinct prefix from posts order by date desc"`
+    for prefix in $prefixes; do
+        indexline $prefix >> $bodyfile
+    done
+    ./html-templater -h $headfile $bodyfile > cache/index.html
+    rm $headfile $bodyfile
+}
+
+maketagindex () {
+    tags=`cat cache/dirtytags | sort | uniq`
+    for tag in $tags; do
+        headfile=cache/tag_${tag}_head.html
+        bodyfile=cache/tag_${tag}_body.html
+        printf "<title>${blogtitle} - ${tag} (tag)</title>" > $headfile
+        printf "<h1 class=\"blog-title\">%s</h1>\n" $blogtitle > $bodyfile
+        printf "<h2 class=\"blog-title\">%s</h1>\n" $tag >> $bodyfile
+        if [ -f "indices/tag_${tag}.md" ]; then
+            lowdown -e math indices/tag_${tag}.md | sed "s@INSERTBASEURL@$baseurl@g" >> $bodyfile
+        fi
+        echo >> $bodyfile
+        prefixes=`sqlite3 cache/posts.db "select distinct prefix from posts where tag = \"$tag\" order by date desc"`
+        for prefix in $prefixes; do
+            indexline $prefix >> $bodyfile
+        done
+        ./html-templater -h $headfile $bodyfile > cache/tag_${tag}.html
+        rm $headfile $bodyfile
+    done
+}
+
+indexline () {
+    prefix=$1
+    title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\""`
+    printf "<h3 class=\"indexline-title\"><a href=\"$prefix.html\">%s</a></h3>\n" "$title"
+    dateandtags $prefix
+}
+
+# process each of the directories
+for dir in $postdirs; do
+    try processdir $dir $baseurl
+done
+
+# reindex
+maketagindex
+if [ $dirty = 1 ]; then
+    makeindex
+fi
+
+# vi: et ts=4 sts=4 :

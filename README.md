@@ -1,36 +1,48 @@
-# Staticsite
+# Staticsite (Version 2)
 
-This is a simple static html blog generator using only 278 lines (as of this submission) of shell code.
+This is a simple static html blog generator using only 320 lines (as of this submission) of shell code.
+
+## Differences from Version 1
+
+- Posts can now be spread over several folders.
+- Configuration takes place in the file blogconfig instead of the script.
+- There is no need for the use of INSERTBASEURL anymore since all html files are contained in the same folder.
+- Tagindex files are now located at `tag_<tagname>.html`
+- A post called `<post>.md` located in directory `<dir>` is located at `<dir>_<post>.html`
+- The compilation step does not compile posts that have not been changed.
 
 ## Organization
 
-Posts are placed within the `posts` directory and are written in markdown, and have `.md` extension (anything else can be used to effectively save drafts inplace, for example).
+Posts are placed within dedicated directories, written in markdown, and have `.md` extension (anything else can be used to effectively save drafts inplace, for example).
 
-Each post begins with a metadata section delimited by lines containing nothing but dashes.
-
+Each post begins with a metadata section delimited by lines containing nothing but dashes `---`.
 The currently supported metadata is: `title:`, `date:`, `modified:`, `tags:`.
 
-The `tags` line is a space-separated list of tags that you may want to place in the file.
+- The `tags` line is a space-separated list of tags that you may want to place in the file.
+- The lines with `date` and `modified` are recomended to be in format `YYYY-MM-DD` since these can be easily ordered in lexicographic order.
+- The `title` line is the title of the post and it gets rendered as a heading at the top of the post.
 
-The script generates a `tagindex.html` page for each tag in a post, which by default only has the tag name as title and lists the posts tagged with that tag.
+The directories used by the script are registered at blogconfig in a line marked `postdirs: ` which is a space separated list of directory names (don't use directory names with spaces).
 
-Optionally, by creating the file `tag/<tag-name>/tagindex.md` the rendered markdown can be included above the list of posts.
+For each post `directory/post.md` the script compiles it to an html file located at `cache/directory_post.md` (notice the `_`), registers each tag `tagname` in the corresponding `cache/tag_tagname.html` file and registers the post at `index.html`.
 
-The main index.html file is created by providing `tag/MAININDEX/tagindex.md`.
+To view the output of the site after compilation simply point your browser to `cache/index.html`.
+
+Tag files can be enriched with an introduction by writing the corresponding `tag_tagname.md` file in the directory `indices`. Similar, a file named `index.md` in the directory `indices` will be rendered into the `index.html` file.
 
 ## Dependencies
 
-The script uses mostly standard tools like sed(1) and awk(1) for text manipulation. The only non-standard tool that it makes use of is the lowdown(1) to compile markdown into html.
+The `compilesite` script depends on:
+- lowdown (for compiling markdown to html)
+- sqlite3 (for keeping a searchable database of the post metadata)
 
 ## Running
 
-before running you should change the variables `blogname` and `baseurl` at the top of `makeposts.sh`
+before running you should change the `blogconfig` file to reflect your options.
 
-After writing all your posts, the whole thing can be compiled by running `./makeposts` and deployed into the default `/var/www/htdocs` by running `./deploy.sh` as root.
+After writing all your posts, the whole thing can be compiled by running `./compilesite` and deployed into the default `/var/www/htdocs` by running `./deploy` as root.
 
 ## Notes
 
-This was written in openbsd and there may be slight differences in the syntax for sed and awk commands.
-
-To generate a locally viewable copy simply run `makeposts.sh local` and the resulting webpage saved in the `deploy` directory should be fully functional
+This was written in openbsd and there may be slight differences in the syntax for sed(1) and stat(1). If there is a failure with stat(1) the commented lines next to them run in archlinux.
 
