@@ -118,7 +118,7 @@ processpost () {
         processheader $outprefix
         htmlbody $outprefix > cache/${outprefix}_body.html
         htmlhead $outprefix > cache/${outprefix}_head.html
-        ./html-templater -h cache/${outprefix}_head.html cache/${outprefix}_body.html > cache/${outprefix}.html
+        blog-template -h cache/${outprefix}_head.html cache/${outprefix}_body.html > cache/${outprefix}.html
         # rm cache/${outprefix}_body.html cache/${outprefix}_head.html cache/${outprefix}.head cache/${outprefix}.body
     fi
 }
@@ -149,7 +149,7 @@ makeindex () {
     for prefix in $prefixes; do
         indexline $prefix >> $bodyfile
     done
-    ./html-templater -h $headfile $bodyfile > cache/index.html
+    blog-template -h $headfile $bodyfile > cache/index.html
     rm $headfile $bodyfile
 }
 
@@ -162,14 +162,14 @@ maketagindex () {
         printf "<h1 class=\"blog-title\">%s</h1>\n" $blogtitle > $bodyfile
         printf "<h2 class=\"blog-title\">%s</h1>\n" $tag >> $bodyfile
         if [ -f "indices/tag_${tag}.md" ]; then
-            lowdown -e math indices/tag_${tag}.md | sed "s@INSERTBASEURL@$baseurl@g" >> $bodyfile
+            lowdown -e math indices/tag_${tag}.md >> $bodyfile
         fi
         echo >> $bodyfile
         prefixes=`sqlite3 cache/posts.db "select distinct prefix from posts where tag = \"$tag\" order by date desc"`
         for prefix in $prefixes; do
             indexline $prefix >> $bodyfile
         done
-        ./html-templater -h $headfile $bodyfile > cache/tag_${tag}.html
+        blog-template -h $headfile $bodyfile > cache/tag_${tag}.html
         rm $headfile $bodyfile
     done
 }

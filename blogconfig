@@ -1,3 +1,4 @@
 blogtitle: my blog title
 baseurl: https://my-url.com
 postdirs: posts otherposts
+destination: /var/www/htdocs

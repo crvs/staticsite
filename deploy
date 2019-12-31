@@ -1,7 +1,0 @@
-#!/bin/sh
-
-for file in cache/*.html;
-do
-	filename=${file##cache/}
-	install -m 500 -o www -g www cache/$filename /var/www/htdocs/$filename
-done

@@ -1,15 +1,6 @@
-# Staticsite (Version 2)
+# Staticsite (Version 3)
 
-This is a simple static html blog generator using only 320 lines (as of this submission) of shell code.
-
-## Differences from Version 1
-
-- Posts can now be spread over several folders.
-- Configuration takes place in the file blogconfig instead of the script.
-- There is no need for the use of INSERTBASEURL anymore since all html files are contained in the same folder.
-- Tagindex files are now located at `tag_<tagname>.html`
-- A post called `<post>.md` located in directory `<dir>` is located at `<dir>_<post>.html`
-- The compilation step does not compile posts that have not been changed.
+This is a simple static html blog generator using only 410 lines (as of this submission) of shell code.
 
 ## Organization
 
@@ -32,17 +23,38 @@ Tag files can be enriched with an introduction by writing the corresponding `tag
 
 ## Dependencies
 
-The `compilesite` script depends on:
+The `blog-compile` script depends on:
 - lowdown (for compiling markdown to html)
 - sqlite3 (for keeping a searchable database of the post metadata)
 
+## Installation
+
+Simply run the install script `install.sh` which will place the scripts `blog` `blog-template` `blog-make` and `blog-deploy` on your `~/.local/bin` folder (which should be in your path).
+
 ## Running
 
-before running you should change the `blogconfig` file to reflect your options.
+Before running you should change the `blogconfig` file to reflect your options.
 
-After writing all your posts, the whole thing can be compiled by running `./compilesite` and deployed into the default `/var/www/htdocs` by running `./deploy` as root.
+After writing all your posts, the whole thing can be compiled by running `blog make` and deployed by running `blog deploy`.
 
 ## Notes
 
-This was written in openbsd and there may be slight differences in the syntax for sed(1) and stat(1). If there is a failure with stat(1) the commented lines next to them run in archlinux.
+- This was written in openbsd and there may be slight differences in the syntax for sed(1) and stat(1). If there is a failure with stat(1) the commented lines next to them run in archlinux.
+- There may be a problem running `blog deploy` with root priveleges since the `blog-deploy` script may not be located in the root path and can't be called from `blog`. A workaround is to simply call `blog-deploy`.
 
+### Changes in Version 3
+
+- Instead of a hardcoded destination directory the destination is configured in the `blogconfig` file
+- There is now a unified interface using the script `blog` which wraps around other scripts 
+- The scripts have been renamed to `blog-make`, `blog-deploy` and `blog-template`
+- An installation script (`install.sh`) now allows a user to install locally the blog deployer.
+- The blog directory no longer needs to contain all the scripts
+
+### Changes in Version 2
+
+- Posts can now be spread over several folders.
+- Configuration takes place in the file blogconfig instead of the script.
+- There is no need for the use of INSERTBASEURL anymore since all html files are contained in the same folder.
+- Tagindex files are now located at `tag_<tagname>.html`
+- A post called `<post>.md` located in directory `<dir>` is located at `<dir>_<post>.html`
+- The compilation step does not compile posts that have not been changed.

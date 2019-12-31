@@ -1,0 +1,13 @@
+#!/bin/sh
+
+yell() { echo ": $*" >&2; }
+die () { yell "$*"; exit 111; }
+try () { "$@" || die "cannot $*" ; }
+
+destination=`try sed -n 's/destination: *//p' blogconfig`
+
+for file in cache/*.html;
+do
+	filename=${file##cache/}
+	install -m 500 -o www -g www cache/$filename $destination/$filename
+done
