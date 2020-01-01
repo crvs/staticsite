@@ -1,5 +1,8 @@
 #!/bin/sh
 
+
+runlocation=${0%%/blog}
+
 yell() { echo ": $*" >&2; }
 die () { yell "$*"; exit 111; }
 try () { "$@" || die "cannot $*" ; }
@@ -47,18 +50,18 @@ case "$1" in
     if [ $# -gt 1 ]; then
         printusage
     else 
-        blog-deploy
+        $runlocation/blog-deploy
     fi
     ;;
     template)
     nargs=`echo $@ | sed 's/^template//'`
-    blog-template $nargs
+    $runlocation/blog-template $nargs
     ;;
     make)
     if [ $# -gt 1 ]; then
         printusage
     else 
-        blog-make
+        $runlocation/blog-make
     fi
     ;;
     *)
