@@ -10,25 +10,42 @@ baseurl=`try sed -n 's/baseurl: *//p' blogconfig`
 
 mkdir -p cache
 
-touch cache/dirtytags
+echo > cache/dirtytags
 dirty=0
 
 # open database
 sqlite3 cache/posts.db "create table if not exists posts ( title TEXT, prefix TEXT, date TEXT, modified TEXT, tag TEXT)"
 
+gettimestamp () {
+    file=$1
+    os=`uname`
+    case $os in
+    *BSD)
+            # OpenBSD syntax may need more specialization
+            timestamp=`try stat -f "%Sm" -t "%Y%m%d%H%M%S" $file` 
+            ;;
+    *linux|*Linux)
+            # Linux syntax
+            timestamp=`try stat -c "%Y" $file`
+            ;;
+    *)
+            # OpenBSD syntax may need more specialization
+            timestamp=`try stat -f "%Sm" -t "%Y%m%d%H%M%S" $file` 
+            ;;
+    esac
+    print $timestamp
+} 
+
 isnewer () {
     new=$1
     old=$2
-    ####### in open bsd
-    newstamp=`stat -f "%Sm" -t "%Y%m%d%H%M%S" $new`
-    #newstamp=`stat -c "%Y" $new` 
+    newstamp=`gettimestamp $new`
     if [ ! -f $old ]; then
         echo "0"
         return 0
     fi
 
-    oldstamp=`stat -f "%Sm" -t "%Y%m%d%H%M%S" $old`
-    #oldstamp=`stat -c "%Y" $old` 
+    oldstamp=`gettimestamp $old`
     if [ $newstamp -ge $oldstamp ]; then
         echo "0"
     else
@@ -66,6 +83,7 @@ htmlhead () {
 
 dateandtags () {
     prefix=$1
+    isdirty=$2
     date=`sqlite3 cache/posts.db "select distinct date from posts where prefix = \"$prefix\""`
     echo "<b>published: ${date}</b>"
     modified=`sqlite3 cache/posts.db "select distinct modified from posts where prefix = \"$prefix\""`
@@ -74,10 +92,12 @@ dateandtags () {
     fi
     echo "<br/>"
     tags=`sqlite3 cache/posts.db "select distinct tag from posts where prefix = \"$prefix\""`
-    for tag in $tags; do
-        echo $tag >> cache/dirtytags
-        echo "<a href=tag_${tag}.html>${tag}</a>"
-    done
+    if [ ! "$isdirty" = "" ] ; then
+            for tag in $tags; do
+                echo $tag >> cache/dirtytags
+                echo "<a href=tag_${tag}.html>${tag}</a>"
+            done
+    fi
 }
 
 
@@ -86,7 +106,7 @@ htmlbody () {
     title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\""`
     echo "<h1 class=\"blog-title\"><a href=\"index.html\">${blogtitle}</a></h1>"
     echo "<h1 class=\"post-title\">${title}</h1>"
-    dateandtags $prefix
+    dateandtags $prefix "markdirty"
     lowdown -e math cache/${prefix}.body
 }
 
@@ -154,8 +174,9 @@ makeindex () {
 }
 
 maketagindex () {
-    tags=`cat cache/dirtytags | sort | uniq`
+    tags=`sort cache/dirtytags | uniq`
     for tag in $tags; do
+        echo rebuilding tag $tag
         headfile=cache/tag_${tag}_head.html
         bodyfile=cache/tag_${tag}_body.html
         printf "<title>${blogtitle} - ${tag} (tag)</title>" > $headfile
@@ -183,12 +204,15 @@ indexline () {
 
 # process each of the directories
 for dir in $postdirs; do
+    echo rebuilding directory $dir:
     try processdir $dir $baseurl
 done
 
 # reindex
 maketagindex
+rm cache/dirtytags
 if [ $dirty = 1 ]; then
+    echo rebuilding index
     makeindex
 fi
 

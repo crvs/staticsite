@@ -1,6 +1,6 @@
 # Staticsite (Version 3)
 
-This is a simple static html blog generator using only 410 lines (as of this submission) of shell code.
+This is a simple static html blog generator using only 437 lines (as of this submission) of shell code.
 
 ## Organization
 
@@ -39,7 +39,7 @@ After writing all your posts, the whole thing can be compiled by running `blog m
 
 ## Notes
 
-- This was written in openbsd and there may be slight differences in the syntax for sed(1) and stat(1). If there is a failure with stat(1) the commented lines next to them run in archlinux.
+- This was written in openbsd and there may be slight differences in the syntax for sed(1) and stat(1). ~~If there is a failure with stat(1) the commented lines next to them run in archlinux.~~. As of this writing the stat command should work under linux, if more portability is needed on this, altering the function `gettimestamp` in `blog-make` should be simple enough.
 - ~~There may be a problem running `blog deploy` with root priveleges since the `blog-deploy` script may not be located in the root path and can't be called from `blog`. A workaround is to simply call `blog-deploy`.~~ this issue has been solved
 
 ### Changes in Version 3
