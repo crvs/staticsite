@@ -29,7 +29,9 @@ The `blog-compile` script depends on:
 
 ## Installation
 
-Simply run the install script `install.sh` which will place the scripts `blog` `blog-template` `blog-make` and `blog-deploy` on your `~/.local/bin` folder (which should be in your path).
+Simply run the install script `install.sh` which will place the scripts (contained in `src`) `blog` `blog-template` `blog-make` and `blog-deploy` on your `~/.local/bin` folder (which should be in your path).
+
+If run as root the files will instead be placed in `/usr/local/bin`.
 
 ## Running
 
