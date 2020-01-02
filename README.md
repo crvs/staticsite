@@ -1,4 +1,4 @@
-# Staticsite (Version 3)
+# Staticsite
 
 This is a simple static html blog generator using only 437 lines (as of this submission) of shell code.
 
@@ -23,9 +23,9 @@ Tag files can be enriched with an introduction by writing the corresponding `tag
 
 ## Dependencies
 
-The `blog-compile` script depends on:
-- lowdown (for compiling markdown to html)
-- sqlite3 (for keeping a searchable database of the post metadata)
+The `blog-make` script depends on:
+- `lowdown(1)` (for compiling markdown to html)
+- `sqlite3(1)` (for keeping a searchable database of the post metadata)
 
 ## Installation
 
@@ -39,10 +39,16 @@ Before running you should change the `blogconfig` file to reflect your options.
 
 After writing all your posts, the whole thing can be compiled by running `blog make` and deployed by running `blog deploy`.
 
-## Notes
+## Note
 
-- This was written in openbsd and there may be slight differences in the syntax for sed(1) and stat(1). ~~If there is a failure with stat(1) the commented lines next to them run in archlinux.~~. As of this writing the stat command should work under linux, if more portability is needed on this, altering the function `gettimestamp` in `blog-make` should be simple enough.
-- ~~There may be a problem running `blog deploy` with root priveleges since the `blog-deploy` script may not be located in the root path and can't be called from `blog`. A workaround is to simply call `blog-deploy`.~~ this issue has been solved
+- There may be slight divergences in the syntax of sed(1) and stat(1) over several different systems, please feel free to report if there are any errors.
+
+### Changes in Version 3.1
+
+- This is a bump up with minor bug fixes and just making the repositor more organized (or presentable at least).
+- The `gettimestamp` function introduced in `blog-make` makes checks the operating system before issuing a call to stat(1) so that the right flags are used.
+- The `blog` script now verifies where it is located so that it can call `blog-make`, `blog-template` and `blog-deploy` using the full path (and therefore this can be done within a call with `sudo(1)` or `doas(1)`).
+- The `install.sh` script now allows systemwide installation (under `/usr/local/bin`) when installed by `root` (or using `sudo(1)` or `doas(1)`).
 
 ### Changes in Version 3
 
