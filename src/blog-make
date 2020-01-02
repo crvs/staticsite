@@ -7,8 +7,16 @@ try () { "$@" || die "cannot $*" ; }
 blogtitle=`try sed -n 's/blogtitle: *//p' blogconfig`
 postdirs=`try sed -n 's/postdirs: *//p' blogconfig`
 baseurl=`try sed -n 's/baseurl: *//p' blogconfig`
+payloads=`try sed -n 's/payloads: *//p' blogconfig`
+
 
 mkdir -p cache
+for p in $payloads; do
+    dest=cache/$p
+    if [ -L $dest ]; then
+        rm $dest
+    fi
+done
 
 echo > cache/dirtytags
 dirty=0
@@ -215,5 +223,9 @@ if [ $dirty = 1 ]; then
     echo rebuilding index
     makeindex
 fi
+
+for p in $payloads; do
+    ln -s ../$p cache/$p
+done
 
 # vi: et ts=4 sts=4 :

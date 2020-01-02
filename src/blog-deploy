@@ -5,6 +5,23 @@ die () { yell "$*"; exit 111; }
 try () { "$@" || die "cannot $*" ; }
 
 destination=`try sed -n 's/destination: *//p' blogconfig`
+payloads=`try sed -n 's/payloads: *//p' blogconfig`
+
+installpayload () {
+	payload=$filename
+	if [ -f $filename ]; then
+			install -m 500 -o www -g www -d $filename $destination/$filename
+	elif [ -d $filename ]; then
+		for f in $filename/*; do
+			installpayload $f
+		done
+	fi
+}
+
+for payload in $payloads; do
+	installpayload . $payload
+done
+
 
 for file in cache/*.html;
 do
