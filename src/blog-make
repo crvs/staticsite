@@ -9,7 +9,6 @@ postdirs=`try sed -n 's/postdirs: *//p' blogconfig`
 baseurl=`try sed -n 's/baseurl: *//p' blogconfig`
 payloads=`try sed -n 's/payloads: *//p' blogconfig`
 
-
 mkdir -p cache
 for p in $payloads; do
     dest=cache/$p
@@ -147,7 +146,7 @@ processpost () {
         htmlbody $outprefix > cache/${outprefix}_body.html
         htmlhead $outprefix > cache/${outprefix}_head.html
         blog-template -h cache/${outprefix}_head.html cache/${outprefix}_body.html > cache/${outprefix}.html
-        # rm cache/${outprefix}_body.html cache/${outprefix}_head.html cache/${outprefix}.head cache/${outprefix}.body
+        rm cache/${outprefix}_body.html cache/${outprefix}_head.html cache/${outprefix}.head cache/${outprefix}.body
     fi
 }
 
