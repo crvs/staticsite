@@ -8,18 +8,18 @@ destination=`try sed -n 's/destination: *//p' blogconfig`
 payloads=`try sed -n 's/payloads: *//p' blogconfig`
 
 installpayload () {
-	payload=$filename
+	filename=$1
 	if [ -f $filename ]; then
-			install -m 500 -o www -g www -d $filename $destination/$filename
+			install -D -m 500 -o www -g www $filename $destination/$filename
 	elif [ -d $filename ]; then
-		for f in $filename/*; do
+		for f in `ls $filename/* 2>/dev/null`; do
 			installpayload $f
 		done
 	fi
 }
 
-for payload in $payloads; do
-	installpayload . $payload
+for p in $payloads; do
+	installpayload $p
 done
 
 
