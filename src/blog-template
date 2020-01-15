@@ -83,17 +83,31 @@ cat > $template << EOF
 body{
 	font-family: Arial, Helvetica, sans-serif;
 }
-.content {
+.content
+{
 	width: 650px;
+	max-width: 90%;
 	margin-right: auto;
-	margin-left:  auto;}
-p {
+	margin-left:  auto;
 	text-align: justify;
-	text-justify: inter-word;}
-.index-link {
-     line-height: 40%;}
-.list-date {
-	line-height: 20%;}
+	align-content: center;
+}
+
+.indexline-title
+{
+	white-space: nowrap;
+    line-height: 40%;
+}
+.indexline-date
+{
+	white-space: nowrap;
+	line-height: 20%;
+}
+.indexline-tags
+{
+	white-space: nowrap;
+	line-height: 20%;
+}
 </style>
 
 <!-- HEAD_INPUT -->
