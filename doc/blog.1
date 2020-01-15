@@ -7,19 +7,13 @@
 .Nm blog
 .Nd simple static website generator
 .Sh SYNOPSYS
-
-.Nm blog
-make
-
-.Nm blog
-deploy
-
-.Nm blog
-template
-
-.Nm blog
-remake
-
+.Bl -tag -width blog -compact
+.It Nm blog
+.Nm make
+.It Nm blog
+.Nm deploy
+.It Nm blog
+.Nm template
 .Oo
 .Fl t Ar template
 .Oc
@@ -27,13 +21,17 @@ remake
 .Fl h Ar head-content 
 .Oc
 body-content
+.It Nm blog
+.Nm remake
+.El
 .Sh DESCRIPTION
-blog is a simple static website generator that is minimally configurable and is designed to not need much in the way of maintenance. It comprises a total of three shell scripts
+.Nm blog
+is a simple static website generator that is minimally configurable and is designed to not need much in the way of maintenance.
+It comprises a total of three shell scripts
 .Em blog-make 
 .Em blog-deploy 
 .Em blog-template 
 where:
-
 .Bl -tag -width "blog " -compact
 .It Nm blog make
 processes the markdown files (extension '.md') contained in the directories listed in 
@@ -49,9 +47,9 @@ under the destination directory (also configured in
 with the correct permissions.
 .It Nm blog template
 is used to compile a markdown file into html using lowdown(1). It places the content of the file passed after the optional
-.Nm -h
+.Fl h
 flag into the head of the document, and uses the template passed to the optional
-.Nm -t
+.Fl t
 flag.
 .It Nm blog remake
 is used to force the remaking of every post (and index file) in the blog.
@@ -138,4 +136,3 @@ similarly to link to a specific tag named
 .Em mytag ,
 you just have to link to
 .Em tag_mytag.html .
-
