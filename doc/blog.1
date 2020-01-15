@@ -16,6 +16,10 @@ deploy
 
 .Nm blog
 template
+
+.Nm blog
+remake
+
 .Oo
 .Fl t Ar template
 .Oc
@@ -28,8 +32,30 @@ blog is a simple static website generator that is minimally configurable and is 
 .Em blog-make 
 .Em blog-deploy 
 .Em blog-template 
-where 
-.Nm blog make
+where:
+
+.Bl -tag -width "blog " -compact
+.It Nm blog make
+processes the markdown files (extension '.md') contained in the directories listed in 
+.Em blogconfig
+and places the output in a directory named
+.Em cache
+under the current workind directory.
+.It Nm blog deploy
+installs the contents of the website ('.html' files under the cache directory and any suplementary files or directories listed in 
+.Em blogconfig )
+under the destination directory (also configured in
+.Em blogconfig )
+with the correct permissions.
+.It Nm blog template
+is used to compile a markdown file into html using lowdown(1). It places the content of the file passed after the optional
+.Nm -h
+flag into the head of the document, and uses the template passed to the optional
+.Nm -t
+flag.
+.It Nm blog remake
+is used to force the remaking of every post (and index file) in the blog.
+.El
 .Sh FILES
 .Bl -tag -width "cache/posts.db" -compact
 .It Pa blogconfig
