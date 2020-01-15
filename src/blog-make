@@ -9,6 +9,8 @@ postdirs=`try sed -n 's/postdirs: *//p' blogconfig`
 baseurl=`try sed -n 's/baseurl: *//p' blogconfig`
 payloads=`try sed -n 's/payloads: *//p' blogconfig`
 
+force_remake="$1"
+
 mkdir -p cache
 for p in $payloads; do
     dest=cache/$p
@@ -46,6 +48,13 @@ gettimestamp () {
 isnewer () {
     new=$1
     old=$2
+    remake=$3
+
+    if [ ! "$remake" = "" ]; then
+        echo "0"
+        return 0
+    fi
+
     newstamp=`gettimestamp $new`
     if [ ! -f $old ]; then
         echo "0"
@@ -89,22 +98,26 @@ htmlhead () {
 }
 
 dateandtags () {
-    prefix=$1
-    isdirty=$2
-    date=`sqlite3 cache/posts.db "select distinct date from posts where prefix = \"$prefix\""`
+    prefix="$1"
+    isdirty="$2"
+    date=`sqlite3 cache/posts.db "select date from posts where prefix = \"$prefix\" limit 1"`
+    echo "<div class=\"indexline-date\">"
     echo "<b>published: ${date}</b>"
-    modified=`sqlite3 cache/posts.db "select distinct modified from posts where prefix = \"$prefix\""`
+    modified=`sqlite3 cache/posts.db "select modified from posts where prefix = \"$prefix\" limit 1"`
     if [ ! "$date" = "$modified" ] ; then
         echo "<b>last modified: ${modified}</b>"
     fi
+    echo "</div>"
     echo "<br/>"
+    echo "<div class=\"indexline-tags\">"
     tags=`sqlite3 cache/posts.db "select distinct tag from posts where prefix = \"$prefix\""`
-    if [ ! "$isdirty" = "" ] ; then
-            for tag in $tags; do
-                echo $tag >> cache/dirtytags
-                echo "<a href=tag_${tag}.html>${tag}</a>"
-            done
-    fi
+    for tag in $tags; do
+        echo "<a href=tag_${tag}.html>${tag}</a>"
+        if [ ! "$isdirty" = "" ] ; then
+            echo $tag >> cache/dirtytags
+        fi
+    done
+    echo "</div>"
 }
 
 
@@ -131,8 +144,9 @@ grep '^--*$' -n -C1 $post
 processpost () {
     post=$1
     baseurl=$2
+    remake=$3
     outprefix=`echo $post | sed 's@/@_@g;s/.md$//'`
-    recompute=`isnewer $post cache/$outprefix.html`
+    recompute=`isnewer $post cache/$outprefix.html $remake`
     if [ "$recompute" = "0" ]; then
         echo processing $post
         dirty=1
@@ -153,13 +167,14 @@ processpost () {
 processdir () {
     dir=$1
     baseurl=$2
+    remake=$3
 
     # fail if directory doesn't exist
     [ -d $dir ] || die "FAILED no such directory \"$dir\""
 
     # fail silently if directory doesn't have posts
     for post in `ls $dir/*.md 2>/dev/null`; do
-        processpost $post $baseurl
+        processpost $post $baseurl $remake
     done
 }
 
@@ -204,7 +219,7 @@ maketagindex () {
 
 indexline () {
     prefix=$1
-    title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\""`
+    title=`sqlite3 cache/posts.db "select title from posts where prefix = \"$prefix\" limit 1"`
     printf "<h3 class=\"indexline-title\"><a href=\"$prefix.html\">%s</a></h3>\n" "$title"
     dateandtags $prefix
 }
@@ -212,7 +227,7 @@ indexline () {
 # process each of the directories
 for dir in $postdirs; do
     echo rebuilding directory $dir:
-    try processdir $dir $baseurl
+    try processdir $dir $baseurl $force_remake
 done
 
 # reindex

@@ -57,6 +57,13 @@ case "$1" in
     nargs=`echo $@ | sed 's/^template//'`
     $runlocation/blog-template $nargs
     ;;
+    remake)
+    if [ $# -gt 1 ]; then
+        printusage
+    else 
+        $runlocation/blog-make remake
+    fi
+    ;;
     make)
     if [ $# -gt 1 ]; then
         printusage
