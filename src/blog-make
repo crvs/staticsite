@@ -127,7 +127,7 @@ htmlbody () {
     echo "<h1 class=\"blog-title\"><a href=\"index.html\">${blogtitle}</a></h1>"
     echo "<h1 class=\"post-title\">${title}</h1>"
     dateandtags $prefix "markdirty"
-    lowdown -e math cache/${prefix}.body
+    lowdown -e math -e html-escape cache/${prefix}.body
 }
 
 
