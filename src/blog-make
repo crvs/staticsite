@@ -25,6 +25,43 @@ dirty=0
 # open database
 sqlite3 cache/posts.db "create table if not exists posts ( title TEXT, prefix TEXT, date TEXT, modified TEXT, tag TEXT)"
 
+makerssfeed () {
+    rssfilename=feed.xml
+    rssstream=cache/${rssfilename}
+    cat > ${rssstream} << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>${blogtitle}</title>
+<description></description>
+<link>${baseurl}</link>
+<atom:link href="${baseurl}/${rssfilename}" rel="self" type="application/rss+xml" />
+EOF
+    prefixes=`sqlite3 cache/posts.db "select distinct prefix from posts order by date desc;"`
+    for prefix in $prefixes; do
+        title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"${prefix}\";"`
+        date=`sqlite3 cache/posts.db "select max(date) from posts where prefix = \"${prefix}\";"`
+        link="${baseurl}/${prefix}.html"
+        content=`xmllint --html cache/${prefix}.html --xpath '//div[@class="post-content"]/*'`
+        cat >> ${rssstream}<< EOF
+<item>
+<title>${title}</title>
+<link>${link}</link>
+<pubDate>${date}</pubDate>
+<description>
+<![CDATA[
+${content}
+]]>
+</description>
+</item>
+EOF
+    done
+    cat >> ${rssstream} << EOF
+</channel>
+</rss>
+EOF
+}
+
 gettimestamp () {
     file=$1
     os=`uname`
@@ -124,10 +161,16 @@ dateandtags () {
 htmlbody () {
     prefix=$1
     title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\""`
-    echo "<h1 class=\"blog-title\"><a href=\"index.html\">${blogtitle}</a></h1>"
-    echo "<h1 class=\"post-title\">${title}</h1>"
-    dateandtags $prefix "markdirty"
-    lowdown -e math -e html-escape cache/${prefix}.body
+    cat << EOF
+<div class="post-header">
+    <h1 class="blog-title"><a href=\"index.html\">${blogtitle}</a></h1>
+    <h1 class=\"post-title\">${title}</h1>
+    `dateandtags $prefix "markdirty"`
+</div>
+<div class="post-content">
+    `lowdown -e math cache/${prefix}.body`
+</div>
+EOF
 }
 
 
@@ -236,6 +279,8 @@ rm cache/dirtytags
 if [ $dirty = 1 ]; then
     echo rebuilding index
     makeindex
+    echo rebuilding rssfeed
+    makerssfeed
 fi
 
 for p in $payloads; do

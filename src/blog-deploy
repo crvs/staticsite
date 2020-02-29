@@ -23,7 +23,7 @@ for p in $payloads; do
 done
 
 
-for file in cache/*.html;
+for file in cache/*.{html,xml};
 do
 	filename=${file##cache/}
 	install -m 500 -o www -g www cache/$filename $destination/$filename

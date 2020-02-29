@@ -1,6 +1,6 @@
 # Staticsite
 
-This is a simple static html blog generator using only 437 lines (as of this submission) of shell code.
+This is a simple static html blog generator using only 467 lines (as of this submission) of shell code.
 
 ## Organization
 
@@ -26,6 +26,7 @@ Tag files can be enriched with an introduction by writing the corresponding `tag
 The `blog-make` script depends on:
 - `lowdown(1)` (for compiling markdown to html)
 - `sqlite3(1)` (for keeping a searchable database of the post metadata)
+- `xmllint(1)` (comes bundled with `xmllib`, used to produce the rss feed at `feed.xml`)
 
 ## Installation
 
@@ -42,6 +43,11 @@ After writing all your posts, the whole thing can be compiled by running `blog m
 ## Note
 
 - There may be slight divergences in the syntax of sed(1) and stat(1) over several different systems, please feel free to report if there are any errors.
+
+### Changes in Version 4.0
+
+- The script `blog-make` now produces an RSS feed published as `feed.xml`.
+- It now requires a dependency on `xmllint(1)` for parsing the html into the rss feed.
 
 ### Changes in Version 3.1
 
