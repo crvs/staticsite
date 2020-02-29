@@ -258,7 +258,7 @@ maketagindex () {
             indexline ${prefix} >> ${bodyfile}
         done
         blog-template -h ${headfile} ${bodyfile} > "cache/tag_${tag}.html"
-        # rm $headfile $bodyfile
+        rm $headfile $bodyfile
     done
 }
 
