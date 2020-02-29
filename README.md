@@ -26,7 +26,7 @@ Tag files can be enriched with an introduction by writing the corresponding `tag
 The `blog-make` script depends on:
 - `lowdown(1)` (for compiling markdown to html)
 - `sqlite3(1)` (for keeping a searchable database of the post metadata)
-- `xmllint(1)` (comes bundled with `xmllib`, used to produce the rss feed at `feed.xml`)
+- `xmllint(1)` (comes bundled with `libxml`, used to produce the rss feed at `feed.xml`)
 
 ## Installation
 

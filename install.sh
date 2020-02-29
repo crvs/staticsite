@@ -2,6 +2,29 @@
 
 user=$USER
 
+depcheck () {
+    success="success"
+    for p in $*; do 
+        prog=`which $p`
+        if [ "$prog" = "" ]; then
+            echo "Couldn't find $p"
+            success=""
+        fi
+    done
+
+    if [ "$success" = "" ]; then
+        return 1
+    fi
+    return 0
+}
+
+depcheck lowdown xmllint sqlite3
+if [ "$?" = "1" ]; then
+    echo Missing dependencies, aborting installation
+    exit 1
+fi
+
+
 if [ "$user" = "root" ]; then
     group=wheel
 
