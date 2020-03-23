@@ -23,7 +23,7 @@ echo > cache/dirtytags
 dirty=0
 
 # open database
-sqlite3 cache/posts.db "create table if not exists posts ( title TEXT, prefix TEXT, date TEXT, modified TEXT, tag TEXT)"
+sqlite3 cache/posts.db "create table if not exists posts ( title TEXT, prefix TEXT, date TEXT, modified TEXT, tag TEXT);"
 
 makerssfeed () {
     rssfilename=feed.xml
@@ -79,7 +79,7 @@ gettimestamp () {
             timestamp=`try stat -f "%Sm" -t "%Y%m%d%H%M%S" $file` 
             ;;
     esac
-    print $timestamp
+    printf "$timestamp"
 } 
 
 isnewer () {
@@ -117,30 +117,30 @@ processheader () {
     if [ "$modified" = "" ]; then
         modified=$date
     fi
-    sqlite3 cache/posts.db "delete from posts where prefix = \"$fileprefix\""
+    sqlite3 cache/posts.db "delete from posts where prefix = \"$fileprefix\";"
     tags=`sed -n 's/^tags:  *//p' $header`
     if [ "$tags" = "" ]; then
-        sqlite3 cache/posts.db "insert into posts values (\"$title\",\"$fileprefix\",\"$date\",\"$modified\",\"\")"
+        sqlite3 cache/posts.db "insert into posts values (\"$title\",\"$fileprefix\",\"$date\",\"$modified\",\"\");"
     else
         for tag in $tags; do
-            sqlite3 cache/posts.db "insert into posts values (\"$title\",\"$fileprefix\",\"$date\",\"$modified\",\"$tag\")"
+            sqlite3 cache/posts.db "insert into posts values (\"$title\",\"$fileprefix\",\"$date\",\"$modified\",\"$tag\");"
         done
     fi
 }
 
 htmlhead () {
     prefix=$1
-    title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\""`
+    title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\";"`
     echo "<title>${blogtitle}:${title}</title>"
 }
 
 dateandtags () {
     prefix="$1"
     isdirty="$2"
-    date=`sqlite3 cache/posts.db "select date from posts where prefix = \"$prefix\" limit 1"`
+    date=`sqlite3 cache/posts.db "select date from posts where prefix = \"$prefix\" limit 1;"`
     echo '<div class="indexline-date">'
     echo "<b>published: ${date}</b>"
-    modified=`sqlite3 cache/posts.db "select modified from posts where prefix = \"$prefix\" limit 1"`
+    modified=`sqlite3 cache/posts.db "select modified from posts where prefix = \"$prefix\" limit 1;"`
     if [ ! "$date" = "$modified" ] ; then
         echo "<b>last modified: ${modified}</b>"
     fi
@@ -149,7 +149,7 @@ dateandtags () {
         <br/>
         <div class="indexline-tags">
 EOF
-    tags=`sqlite3 cache/posts.db "select distinct tag from posts where prefix = \"$prefix\""`
+    tags=`sqlite3 cache/posts.db "select distinct tag from posts where prefix = \"$prefix\";"`
     for tag in $tags; do
         printf '<a href="tag_%s.html">%s</a>' "${tag}" "${tag}"
         if [ ! "$isdirty" = "" ] ; then
@@ -159,10 +159,9 @@ EOF
     echo "</div>"
 }
 
-
 htmlbody () {
     prefix=$1
-    title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\""`
+    title=`sqlite3 cache/posts.db "select distinct title from posts where prefix = \"$prefix\";"`
     cat << EOF
 <div class="post-header">
     <h1 class="blog-title"><a href="index.html">${blogtitle}</a></h1>
@@ -174,7 +173,6 @@ htmlbody () {
 </div>
 EOF
 }
-
 
 metadatawarning() {
 post=$1
@@ -229,10 +227,10 @@ makeindex () {
     printf '<title>%s</title>' "${blogtitle}" > $headfile
     printf '<h1 class="blog-title">%s</h1>\n' "$blogtitle" > $bodyfile
     if [ -f "indices/index.md" ]; then
-        lowdown -e math indices/index.md | sed "s@INSERTBASEURL@$baseurl@g" >> $bodyfile
+        lowdown -e math indices/index.md >> $bodyfile
     fi
     echo >> $bodyfile
-    prefixes=`sqlite3 cache/posts.db "select distinct prefix from posts order by date desc"`
+    prefixes=`sqlite3 cache/posts.db "select distinct prefix from posts order by date desc;"`
     for prefix in $prefixes; do
         indexline $prefix >> $bodyfile
     done
@@ -246,6 +244,7 @@ maketagindex () {
         echo rebuilding tag $tag
         headfile=cache/tag_${tag}_head.html
         bodyfile=cache/tag_${tag}_body.html
+        postfile=cache/tag_${tag}.html
         printf '<title>%s - %s (tag)</title>' "${blogtitle}" "${tag}" > $headfile
         printf '<h1 class="blog-title">%s</h1>\n' "${blogtitle}" > $bodyfile
         printf '<h2 class="blog-title">%s</h1>\n' "${tag}" >> $bodyfile
@@ -253,18 +252,19 @@ maketagindex () {
             lowdown -e math indices/tag_${tag}.md >> $bodyfile
         fi
         echo >> $bodyfile
-        prefixes=`sqlite3 cache/posts.db "select distinct prefix from posts where tag = \"${tag}\" order by date desc"`
+        prefixes=`sqlite3 cache/posts.db "select distinct prefix from posts where tag = \"${tag}\" order by date desc;"`
         for prefix in ${prefixes}; do
+            # echo tag $tag - $prefix
             indexline ${prefix} >> ${bodyfile}
         done
-        blog-template -h ${headfile} ${bodyfile} > "cache/tag_${tag}.html"
+        blog-template -h ${headfile} ${bodyfile} > ${postfile}
         rm $headfile $bodyfile
     done
 }
 
 indexline () {
     prefix=$1
-    title=`sqlite3 cache/posts.db "select title from posts where prefix = \"$prefix\" limit 1"`
+    title=`sqlite3 cache/posts.db "select title from posts where prefix = \"$prefix\" limit 1;"`
     printf '<h3 class="indexline-title"><a href="%s.html">%s</a></h3>\n' "$prefix" "$title"
     dateandtags $prefix
 }
@@ -277,7 +277,7 @@ done
 
 # reindex
 maketagindex
-cache/dirtytags
+rm cache/dirtytags
 if [ $dirty = 1 ]; then
     echo rebuilding index
     makeindex
@@ -289,4 +289,4 @@ for p in $payloads; do
     ln -s ../$p cache/$p
 done
 
-# vi: et ts=4 sts=4 :
+# vi: et ts=4 sts=4
