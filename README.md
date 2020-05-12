@@ -6,7 +6,7 @@ This is a simple static html blog generator using only 467 lines (as of this sub
 
 Posts are placed within dedicated directories, written in markdown, and have `.md` extension (anything else can be used to effectively save drafts inplace, for example).
 
-Each post begins with a metadata section delimited by lines containing nothing but dashes `---`.
+Each post begins with a metadata section delimited which comprises all the lines until the first blank line.
 The currently supported metadata is: `title:`, `date:`, `modified:`, `tags:`.
 
 - The `tags` line is a space-separated list of tags that you may want to place in the file.
@@ -24,9 +24,9 @@ Tag files can be enriched with an introduction by writing the corresponding `tag
 ## Dependencies
 
 The `blog-make` script depends on:
-- `lowdown(1)` (for compiling markdown to html)
+- `lowdown(1)` (for compiling markdown to html. available on the [developer's site](https://kristaps.bsd.lv/lowdown/) or on [github](https://github.com/kristapsdz/lowdown))
 - `sqlite3(1)` (for keeping a searchable database of the post metadata)
-- `xmllint(1)` (comes bundled with `libxml`, used to produce the rss feed at `feed.xml`)
+- `xmllint(1)` (comes bundled with `libxml`, used to produce the rss feed at `feed.xml` commonly available from the `libxml2`/`libxml2-utils` packages)
 
 ## Installation
 
@@ -44,6 +44,10 @@ After writing all your posts, the whole thing can be compiled by running `blog m
 
 - There may be slight divergences in the syntax of sed(1) and stat(1) over several different systems, please feel free to report if there are any errors.
 
+### Changes in Version 5.0
+
+- Blog posts no longer require the metadata to be placed between lines of dashes, instead they are just the first (naked) paragraph of the file, as expected by lowdown.
+
 ### Changes in Version 4.0
 
 - The script `blog-make` now produces an RSS feed published as `feed.xml`.
@@ -59,7 +63,7 @@ After writing all your posts, the whole thing can be compiled by running `blog m
 ### Changes in Version 3
 
 - Instead of a hardcoded destination directory the destination is configured in the `blogconfig` file
-- There is now a unified interface using the script `blog` which wraps around other scripts 
+- There is now a unified interface using the script `blog` which wraps around other scripts
 - The scripts have been renamed to `blog-make`, `blog-deploy` and `blog-template`
 - An installation script (`install.sh`) now allows a user to install locally the blog deployer.
 - The blog directory no longer needs to contain all the scripts
