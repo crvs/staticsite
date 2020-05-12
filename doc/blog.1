@@ -18,7 +18,7 @@
 .Fl t Ar template
 .Oc
 .Oo
-.Fl h Ar head-content 
+.Fl h Ar head-content
 .Oc
 body-content
 .It Nm blog
@@ -28,13 +28,13 @@ body-content
 .Nm blog
 is a simple static website generator that is minimally configurable and is designed to not need much in the way of maintenance.
 It comprises a total of three shell scripts
-.Em blog-make 
-.Em blog-deploy 
-.Em blog-template 
+.Em blog-make
+.Em blog-deploy
+.Em blog-template
 where:
 .Bl -tag -width "blog " -compact
 .It Nm blog make
-processes the markdown files (extension '.md') contained in the directories listed in 
+processes the markdown files (extension '.md') contained in the directories listed in
 .Em blogconfig
 and places the output in a directory named
 .Em cache
@@ -47,7 +47,7 @@ pages, as well as an
 .Em RSS feed
 which is stored in feed.xml.
 .It Nm blog deploy
-installs the contents of the website ('.html' files under the cache directory and any suplementary files or directories listed in 
+installs the contents of the website ('.html' files under the cache directory and any suplementary files or directories listed in
 .Em blogconfig )
 under the destination directory (also configured in
 .Em blogconfig )
@@ -75,13 +75,13 @@ database containing the metadata associated to the blog posts that have been pro
 .Pa blogconfig
 is a bare-bones yaml-style configuration file containing a minimal list of variables, which are.
 .Bl -tag -width "destination:" -compact
-.It blogtitle: 
+.It blogtitle:
 The title of the blog which will be placed at the header of every subsequent page.
-.It baseurl: 
+.It baseurl:
 The url of the blog.
 .It postdirs:
 A space separated list of directories which contain the markdown files that will be processed.
-.It payloads: 
+.It payloads:
 A space separated list of directories which contain files that should be hosted
 .Em as-is .
 .It destination:
@@ -96,8 +96,10 @@ and placed within one of the directories named in the
 line in the
 .Em blogconfig
 file.
-Each post should contain a head section at the beginning of the file starting and ending by a line containing only a string of dashes "-".
-The head section should have the following metadata:
+The first paragraph in each post starting at the
+.Em first line of the post and until the first blank line of the post
+will comprise the metadata of the blog post.
+This head section should have the following metadata:
 .Bl -tag -width "modified:" -compact
 .It Em title:
 The title of the blog post being rendered.
@@ -107,7 +109,7 @@ Tags to identify/group this blog post by.
 The date in which the blog post is to be "published" (or rather authored).
 .It Em modified:
 The date at which it was last modified (optional).
-.El 
+.El
 Any other piece of metadata will be ignored.
 .Sh EXAMPLE BLOGCONFIG
 .Bd
@@ -119,19 +121,17 @@ Any other piece of metadata will be ignored.
 .Ed
 .Sh EXAMPLE POST
 .Bd
-.Dl ---
 .Dl title: An example post
 .Dl tags: exampletag useless
 .Dl date: 2019-12-29
-.Dl modified: 2019-12-30	 
-.Dl ---
+.Dl modified: 2019-12-30	
 
 .Dl This is an example post of my [blog](index.html) where I also include an important [file](files/afile.png) which I had mentioned before in my [other blog post](posts_otherpost.html). You can read all my other useless posts [here](tag_useless.html)
 .Ed
-.Pp 
+.Pp
 note that the linked file is in the directory
 .Em files
-which is explicitly mentioned in the 
+which is explicitly mentioned in the
 .Em payloads
 line in
 .Em blogconfig.

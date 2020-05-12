@@ -4,7 +4,7 @@ user=$USER
 
 depcheck () {
     success="success"
-    for p in $*; do 
+    for p in $*; do
         prog=`which $p`
         if [ "$prog" = "" ]; then
             echo "Couldn't find $p"
@@ -35,7 +35,7 @@ if [ "$user" = "root" ]; then
     docdestination=/usr/local/man
 
 else
-    group=$user
+    group=`groups | sed 's/ .*//'`
 
     mode=700
     destination=$HOME/.local/bin
@@ -46,14 +46,14 @@ fi
 
 for f in src/*; do
     filename=${f#src/}
-    install -m $mode -o $user -g $group $f \
+    install -m $mode -o $user -g $group -D $f \
         $destination/$filename
 done
 
 for d in doc/*; do
     section=${d##*.}
     filename=${d#doc/}
-    install -m $mode -o $user -g $group $d \
+    install -m $mode -o $user -g $group -D $d \
         $docdestination/man${section}/$filename
 done
 

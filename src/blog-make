@@ -68,7 +68,7 @@ gettimestamp () {
     case $os in
     *BSD)
             # OpenBSD syntax may need more specialization
-            timestamp=`try stat -f "%Sm" -t "%Y%m%d%H%M%S" $file` 
+            timestamp=`try stat -f "%Sm" -t "%Y%m%d%H%M%S" $file`
             ;;
     *linux|*Linux)
             # Linux syntax
@@ -76,11 +76,11 @@ gettimestamp () {
             ;;
     *)
             # OpenBSD syntax may need more specialization
-            timestamp=`try stat -f "%Sm" -t "%Y%m%d%H%M%S" $file` 
+            timestamp=`try stat -f "%Sm" -t "%Y%m%d%H%M%S" $file`
             ;;
     esac
     printf "$timestamp"
-} 
+}
 
 isnewer () {
     new=$1
@@ -178,10 +178,12 @@ metadatawarning() {
 post=$1
 cat << EOF
 WARNING, there may be a problem with processing metadata in $post, please make
-sure that there are exactly 2 instances of lines comprising _only_ dashes at
-the head of the file, and containing nothing but the metadata in between.
+sure that the metadata is stored in the first paragraph of the post and that it
+consists of lines starting with the matadata tag followed by a colon (e.g.
+'title: ' ). Make sure that the first paragraph comprises only metadata.
 EOF
-grep '^--*$' -n -C1 $post
+echo first paragraph:
+sed 's/^/\t/;/^$/q' $post
 }
 
 processpost () {
@@ -193,10 +195,11 @@ processpost () {
     if [ "$recompute" = "0" ]; then
         echo processing $post
         dirty=1
-        sed -n '/^--*$/,/^--*$/p' $post | sed '1d;$d' > cache/$outprefix.head
-        sed '/^--*$/,/^--*$/d' $post > cache/$outprefix.body
-        nbars=`sed -n '/^--*$/p' $post | wc -l`
-        if [ $nbars -ne 2 ]; then
+        sed '/^$/q' $post > cache/$outprefix.head
+        sed '0,/^$/d' $post > cache/$outprefix.body
+        n_entries=`sed -n '/^$/d' cache/$outprefix.head | grep '[[:alpha:]]:' | wc -l`
+        n_poss_entries=`sed -n '/^$/d' cache/$outprefix.head | wc -l`
+        if [ $n_entries -ne $n_poss_entries ]; then
             metadatawarning $post >&2
         fi
         processheader $outprefix
